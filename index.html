@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PilahAI — Asisten Pemilahan Sampah Cerdas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        eco: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                            950: '#052e16',
+                        },
+                        mint: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    },
+                    keyframes: {
+                        scan: {
+                            '0%': { top: '0%' },
+                            '50%': { top: '100%' },
+                            '100%': { top: '0%' }
+                        },
+                        pulseSlow: {
+                            '0%, 100%': { opacity: 1 },
+                            '50%': { opacity: 0.4 }
+                        }
+                    },
+                    animation: {
+                        scan: 'scan 2.5s ease-in-out infinite',
+                        'pulse-slow': 'pulseSlow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .dark .glass-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <header class="sticky top-0 z-50 glass-card border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('beranda')">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-eco-600 to-mint-500 flex items-center justify-center shadow-lg shadow-eco-600/30 text-white text-xl font-bold">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-eco-600 to-mint-600 bg-clip-text text-transparent">PilahAI</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Asisten Pemilahan Sampah Cerdas</p>
+                </div>
+            </div>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center space-x-1 lg:space-x-2">
+                <button onclick="switchTab('beranda')" class="nav-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-eco-600 dark:hover:text-eco-400 hover:bg-eco-50 dark:hover:bg-slate-900" data-target="beranda">
+                    <i class="fa-solid fa-house mr-2"></i>Beranda
+                </button>
+                <button onclick="switchTab('detektor')" class="nav-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-eco-600 dark:hover:text-eco-400 hover:bg-eco-50 dark:hover:bg-slate-900" data-target="detektor">
+                    <i class="fa-solid fa-camera mr-2"></i>Detektor AI
+                </button>
+                <button onclick="switchTab('konsultasi')" class="nav-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-eco-600 dark:hover:text-eco-400 hover:bg-eco-50 dark:hover:bg-slate-900" data-target="konsultasi">
+                    <i class="fa-solid fa-brain mr-2"></i>Cari & Konsultasi
+                </button>
+                <button onclick="switchTab('panduan')" class="nav-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-eco-600 dark:hover:text-eco-400 hover:bg-eco-50 dark:hover:bg-slate-900" data-target="panduan">
+                    <i class="fa-solid fa-book-open mr-2"></i>Panduan Kategori
+                </button>
+                <button onclick="switchTab('tips')" class="nav-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-eco-600 dark:hover:text-eco-400 hover:bg-eco-50 dark:hover:bg-slate-900" data-target="tips">
+                    <i class="fa-solid fa-lightbulb mr-2"></i>Tips Harian
+                </button>
+            </nav>
+
+            <!-- Actions Right -->
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Ganti Tema">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+                <button onclick="openHistoryModal()" class="relative w-10 h-10 rounded-xl bg-eco-50 dark:bg-slate-800 text-eco-600 dark:text-eco-400 flex items-center justify-center hover:bg-eco-100 dark:hover:bg-slate-700 transition" title="Riwayat Pemilahan">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span id="history-badge" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold hidden">0</span>
+                </button>
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Nav Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden px-4 pt-2 pb-4 space-y-2 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md">
+            <button onclick="switchTab('beranda'); toggleMobileMenu();" class="mobile-nav-btn w-full text-left px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-eco-50 dark:hover:bg-slate-800 flex items-center" data-target="beranda">
+                <i class="fa-solid fa-house w-8 text-eco-600"></i>Beranda
+            </button>
+            <button onclick="switchTab('detektor'); toggleMobileMenu();" class="mobile-nav-btn w-full text-left px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-eco-50 dark:hover:bg-slate-800 flex items-center" data-target="detektor">
+                <i class="fa-solid fa-camera w-8 text-eco-600"></i>Detektor AI
+            </button>
+            <button onclick="switchTab('konsultasi'); toggleMobileMenu();" class="mobile-nav-btn w-full text-left px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-eco-50 dark:hover:bg-slate-800 flex items-center" data-target="konsultasi">
+                <i class="fa-solid fa-brain w-8 text-eco-600"></i>Cari & Konsultasi
+            </button>
+            <button onclick="switchTab('panduan'); toggleMobileMenu();" class="mobile-nav-btn w-full text-left px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-eco-50 dark:hover:bg-slate-800 flex items-center" data-target="panduan">
+                <i class="fa-solid fa-book-open w-8 text-eco-600"></i>Panduan Kategori
+            </button>
+            <button onclick="switchTab('tips'); toggleMobileMenu();" class="mobile-nav-btn w-full text-left px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-eco-50 dark:hover:bg-slate-800 flex items-center" data-target="tips">
+                <i class="fa-solid fa-lightbulb w-8 text-eco-600"></i>Tips Harian
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- TAB 1: BERANDA -->
+        <section id="tab-beranda" class="tab-content space-y-12">
+            <!-- Hero Banner -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-eco-900 via-emerald-800 to-mint-800 text-white shadow-2xl p-8 sm:p-12 lg:p-16">
+                <div class="absolute -right-12 -bottom-12 w-96 h-96 bg-eco-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -left-12 -top-12 w-80 h-80 bg-mint-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="relative z-10 max-w-2xl space-y-6">
+                    <div class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-emerald-200 text-xs font-bold uppercase tracking-wider">
+                        <i class="fa-solid fa-seedling"></i>
+                        <span>Solusi Cerdas Pengelolaan Sampah</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+                        Pilah Sampah Lebih Mudah dengan Bantuan <span class="text-eco-300">AI</span>
+                    </h2>
+                    <p class="text-slate-200 text-base sm:text-lg leading-relaxed">
+                        Bingung membedakan sampah organik, anorganik, atau B3 berbahaya? Gunakan <strong>PilahAI</strong> untuk mendeteksi, mengkonsultasikan, dan mengetahui cara pengelolaan yang benar demi bumi yang lebih bersih.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-4">
+                        <button onclick="switchTab('detektor')" class="px-8 py-4 rounded-2xl bg-eco-400 hover:bg-eco-300 text-slate-950 font-bold shadow-lg shadow-eco-500/40 transition transform hover:-translate-y-0.5 flex items-center space-x-3">
+                            <i class="fa-solid fa-camera-retro text-lg"></i>
+                            <span>Coba Detektor AI Sekarang</span>
+                        </button>
+                        <button onclick="switchTab('konsultasi')" class="px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-semibold transition flex items-center space-x-3">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>Cari Nama Sampah</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats & Highlights -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-recycle"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">3 Kategori Utama</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Organik, Anorganik, & Limbah B3</p>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-mint-100 dark:bg-mint-900/40 text-mint-600 dark:text-mint-400 flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Verifikasi Keamanan</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Panduan khusus untuk sampah berbahaya</p>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Deteksi Instan</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Kamera web, unggah foto, atau sampel</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Overview Grid -->
+            <div class="space-y-6">
+                <div class="text-center max-w-2xl mx-auto space-y-2">
+                    <h3 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Fitur Unggulan PilahAI</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm sm:text-base">Dirancang khusus untuk membantu Anda mengelola limbah rumah tangga dengan mudah dan akurat.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="glass-card p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-4 hover:border-eco-500 transition duration-300">
+                        <div class="w-12 h-12 rounded-xl bg-eco-100 dark:bg-eco-900/50 text-eco-600 dark:text-eco-400 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-camera"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 dark:text-white">Detektor Kamera AI</h4>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                            Arahkan kamera ke sampah atau unggah foto untuk mendeteksi kategori dan mendapatkan rekomendasi pemilahan instan beserta waktu urai di alam.
+                        </p>
+                        <button onclick="switchTab('detektor')" class="text-eco-600 dark:text-eco-400 font-semibold text-sm hover:underline flex items-center space-x-2">
+                            <span>Mulai Memindai</span><i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+
+                    <div class="glass-card p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-4 hover:border-eco-500 transition duration-300">
+                        <div class="w-12 h-12 rounded-xl bg-mint-100 dark:bg-mint-900/50 text-mint-600 dark:text-mint-400 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 dark:text-white">Konsultasi AI Pintar</h4>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                            Ketik nama atau deskripsi barang yang membingungkan. AI kami akan memberikan petunjuk pengolahan, dampak lingkungan, dan cara daur ulangnya.
+                        </p>
+                        <button onclick="switchTab('konsultasi')" class="text-eco-600 dark:text-eco-400 font-semibold text-sm hover:underline flex items-center space-x-2">
+                            <span>Cari & Tanya</span><i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+
+                    <div class="glass-card p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-4 hover:border-eco-500 transition duration-300">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 dark:text-white">Aksi & Tips Harian</h4>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                            Ikuti tantangan zero waste sehari-hari, pelajari panduan warna tempat sampah standar nasional, dan bangun kebiasaan hidup ramah lingkungan.
+                        </p>
+                        <button onclick="switchTab('tips')" class="text-eco-600 dark:text-eco-400 font-semibold text-sm hover:underline flex items-center space-x-2">
+                            <span>Lihat Tips</span><i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: DETEKTOR KAMERA AI -->
+        <section id="tab-detektor" class="tab-content hidden space-y-8">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <span class="px-3 py-1 rounded-full bg-eco-100 dark:bg-eco-900/60 text-eco-700 dark:text-eco-300 text-xs font-bold uppercase tracking-wider">AI Scanner Vision</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Detektor Sampah Pintar</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm">Gunakan kamera web secara langsung, unggah foto dari galeri Anda, atau pilih sampel cepat untuk mencoba simulasi AI.</p>
+            </div>
+
+            <!-- Mode Selector Tabs -->
+            <div class="flex justify-center space-x-2 bg-slate-200 dark:bg-slate-800 p-1.5 rounded-2xl max-w-md mx-auto">
+                <button onclick="switchDetectorMode('webcam')" id="mode-webcam-btn" class="flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all bg-white dark:bg-slate-900 text-eco-600 dark:text-eco-400 shadow-sm">
+                    <i class="fa-solid fa-video mr-2"></i>Kamera Web
+                </button>
+                <button onclick="switchDetectorMode('upload')" id="mode-upload-btn" class="flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all text-slate-600 dark:text-slate-400">
+                    <i class="fa-solid fa-upload mr-2"></i>Unggah Foto
+                </button>
+                <button onclick="switchDetectorMode('sample')" id="mode-sample-btn" class="flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all text-slate-600 dark:text-slate-400">
+                    <i class="fa-solid fa-bolt mr-2"></i>Sampel Cepat
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <!-- Scanner Interface Container (Left 7 Cols) -->
+                <div class="lg:col-span-7 glass-card rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 space-y-6">
+                    
+                    <!-- 1. Webcam Mode Container -->
+                    <div id="detector-webcam-view" class="space-y-4">
+                        <div class="relative w-full aspect-[4/3] bg-slate-900 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center">
+                            <video id="webcam-video" autoplay playsinline class="w-full h-full object-cover hidden"></video>
+                            <canvas id="snapshot-canvas" class="hidden"></canvas>
+                            <div id="webcam-placeholder" class="text-center p-8 space-y-3">
+                                <div class="w-16 h-16 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto text-2xl">
+                                    <i class="fa-solid fa-video-slash"></i>
+                                </div>
+                                <p class="text-slate-400 text-sm">Kamera belum diaktifkan. Klik tombol di bawah untuk mulai.</p>
+                            </div>
+
+                            <!-- Laser Scanner Animation (Hidden by default) -->
+                            <div id="scanner-laser" class="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-eco-400 to-transparent shadow-[0_0_15px_#4ade80] animate-scan hidden"></div>
+                            
+                            <!-- Bounding Box Overlay Simulation -->
+                            <div id="bounding-box" class="absolute border-2 border-eco-400 bg-eco-400/10 rounded-xl pointer-events-none hidden transition-all duration-300 flex items-start p-2">
+                                <span class="bg-eco-600 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow">Mendeteksi...</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-3 justify-center">
+                            <button id="start-cam-btn" onclick="startWebcam()" class="px-6 py-3 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-sm shadow-lg shadow-eco-600/30 transition flex items-center space-x-2">
+                                <i class="fa-solid fa-play"></i><span>Aktifkan Kamera</span>
+                            </button>
+                            <button id="stop-cam-btn" onclick="stopWebcam()" class="px-6 py-3 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm transition hidden items-center space-x-2">
+                                <i class="fa-solid fa-stop"></i><span>Matikan Kamera</span>
+                            </button>
+                            <button id="capture-btn" onclick="captureAndAnalyze()" class="px-6 py-3 rounded-xl bg-mint-600 hover:bg-mint-500 text-white font-bold text-sm shadow-lg shadow-mint-600/30 transition hidden items-center space-x-2">
+                                <i class="fa-solid fa-camera"></i><span>Pindai Objek</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Upload Photo Mode Container -->
+                    <div id="detector-upload-view" class="space-y-4 hidden">
+                        <div id="drop-zone" class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-8 text-center hover:border-eco-500 transition cursor-pointer relative" onclick="document.getElementById('file-input').click()">
+                            <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                            <div class="space-y-3">
+                                <div class="w-16 h-16 rounded-2xl bg-eco-50 dark:bg-slate-800 text-eco-600 dark:text-eco-400 flex items-center justify-center mx-auto text-2xl">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                </div>
+                                <div>
+                                    <p class="text-slate-800 dark:text-slate-200 font-bold text-base">Seret foto sampah ke sini, atau <span class="text-eco-600 dark:text-eco-400 underline">telusuri</span></p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Mendukung format PNG, JPG, JPEG (Maks. 5MB)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="upload-preview-container" class="hidden space-y-4">
+                            <div class="relative rounded-2xl overflow-hidden aspect-[4/3] bg-slate-900">
+                                <img id="uploaded-image-preview" src="" alt="Preview" class="w-full h-full object-cover">
+                                <div id="upload-scanner" class="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-eco-400 to-transparent shadow-[0_0_15px_#4ade80] animate-scan hidden"></div>
+                            </div>
+                            <button onclick="analyzeUploadedPhoto()" class="w-full py-3.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-sm shadow-lg shadow-eco-600/30 transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i><span>Analisis Foto dengan AI</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Quick Sample Mode Container -->
+                    <div id="detector-sample-view" class="space-y-4 hidden">
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">Pilih sampel sampah untuk menguji deteksi instan:</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <button onclick="analyzeSample('baterai')" class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-eco-500 dark:hover:border-eco-500 bg-white dark:bg-slate-900 text-left transition space-y-2 group">
+                                <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-battery-half"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-slate-900 dark:text-white text-sm">Baterai Bekas</h5>
+                                    <span class="text-xs text-rose-500 font-semibold">Limbah B3</span>
+                                </div>
+                            </button>
+                            <button onclick="analyzeSample('botol')" class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-eco-500 dark:hover:border-eco-500 bg-white dark:bg-slate-900 text-left transition space-y-2 group">
+                                <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-bottle-water"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-slate-900 dark:text-white text-sm">Botol Plastik</h5>
+                                    <span class="text-xs text-amber-500 font-semibold">Anorganik</span>
+                                </div>
+                            </button>
+                            <button onclick="analyzeSample('sisa_makanan')" class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-eco-500 dark:hover:border-eco-500 bg-white dark:bg-slate-900 text-left transition space-y-2 group">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-apple-whole"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-slate-900 dark:text-white text-sm">Sisa Makanan</h5>
+                                    <span class="text-xs text-emerald-500 font-semibold">Organik</span>
+                                </div>
+                            </button>
+                            <button onclick="analyzeSample('lampu')" class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-eco-500 dark:hover:border-eco-500 bg-white dark:bg-slate-900 text-left transition space-y-2 group">
+                                <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-lightbulb"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-slate-900 dark:text-white text-sm">Lampu Neon</h5>
+                                    <span class="text-xs text-rose-500 font-semibold">Limbah B3</span>
+                                </div>
+                            </button>
+                            <button onclick="analyzeSample('kardus')" class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-eco-500 dark:hover:border-eco-500 bg-white dark:bg-slate-900 text-left transition space-y-2 group">
+                                <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-box-archive"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-slate-900 dark:text-white text-sm">Kardus Bekas</h5>
+                                    <span class="text-xs text-blue-500 font-semibold">Anorganik</span>
+                                </div>
+                            </button>
+                            <button onclick="analyzeSample('minyak')" class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-eco-500 dark:hover:border-eco-500 bg-white dark:bg-slate-900 text-left transition space-y-2 group">
+                                <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-oil-can"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-slate-900 dark:text-white text-sm">Minyak Jelantah</h5>
+                                    <span class="text-xs text-purple-500 font-semibold">Khusus / B3</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Analysis Results Panel (Right 5 Cols) -->
+                <div class="lg:col-span-5 space-y-6">
+                    <div id="detection-result-placeholder" class="glass-card rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 text-center space-y-4">
+                        <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto text-2xl">
+                            <i class="fa-solid fa-microchip"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-800 dark:text-white">Belum Ada Objek Dipindai</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Aktifkan kamera, unggah foto, atau pilih sampel cepat di sebelah kiri untuk melihat analisis kecerdasan buatan PilahAI.
+                        </p>
+                    </div>
+
+                    <!-- Active Result Card (Hidden initially) -->
+                    <div id="detection-result-card" class="glass-card rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6 hidden">
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                            <div class="flex items-center space-x-3">
+                                <div id="res-icon-wrapper" class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold">
+                                    <i id="res-icon" class="fa-solid fa-recycle"></i>
+                                </div>
+                                <div>
+                                    <h3 id="res-title-name" class="text-lg font-bold text-slate-900 dark:text-white">Nama Sampah</h3>
+                                    <span id="res-badge-category" class="text-xs font-bold px-2.5 py-1 rounded-full">Kategori</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs text-slate-400 block font-medium">Akurasi AI</span>
+                                <span id="res-confidence" class="text-sm font-extrabold text-eco-600 dark:text-eco-400">98.4%</span>
+                            </div>
+                        </div>
+
+                        <!-- Details Grid -->
+                        <div class="space-y-4 text-sm">
+                            <div class="bg-slate-100 dark:bg-slate-900/60 p-4 rounded-2xl space-y-1">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                                    <i class="fa-solid fa-hourglass-half mr-2 text-eco-500"></i>Waktu Urai di Alam
+                                </span>
+                                <p id="res-decomposition" class="font-bold text-slate-800 dark:text-slate-200">100 - 500 Tahun</p>
+                            </div>
+
+                            <div class="bg-slate-100 dark:bg-slate-900/60 p-4 rounded-2xl space-y-2">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                                    <i class="fa-solid fa-trash-can mr-2 text-eco-500"></i>Warna Tempat Sampah Rekomendasi
+                                </span>
+                                <div class="flex items-center space-x-2">
+                                    <span id="res-bin-color-dot" class="w-4 h-4 rounded-full"></span>
+                                    <span id="res-bin-name" class="font-bold text-slate-800 dark:text-slate-200">Tempat Sampah Kuning</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-100 dark:bg-slate-900/60 p-4 rounded-2xl space-y-2">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                                    <i class="fa-solid fa-list-check mr-2 text-eco-500"></i>Petunjuk Pemilahan & Pengelolaan
+                                </span>
+                                <p id="res-instructions" class="text-slate-600 dark:text-slate-300 leading-relaxed text-xs sm:text-sm">
+                                    Bersihkan sisa kotoran, keringkan, lalu masukkan ke bank sampah terdekat atau tempat daur ulang.
+                                </p>
+                            </div>
+
+                            <!-- B3 Safety Warning Box (Conditional) -->
+                            <div id="res-b3-warning" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 p-4 rounded-2xl space-y-2 hidden">
+                                <span class="text-xs font-extrabold text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center">
+                                    <i class="fa-solid fa-triangle-exclamation mr-2"></i>Peringatan Limbah B3 / Berbahaya
+                                </span>
+                                <p id="res-b3-text" class="text-rose-700 dark:text-rose-300 text-xs leading-relaxed">
+                                    Jangan dibuang sembarangan atau dibakar. Mengandung zat beracun yang dapat mencemari tanah dan air sumur. Serahkan pada unit pengumpulan limbah khusus.
+                                </p>
+                            </div>
+                        </div>
+
+                        <button onclick="saveDetectionToHistory()" class="w-full py-3.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-sm shadow-lg shadow-eco-600/30 transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-bookmark"></i><span>Simpan ke Riwayat Pemilahan</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: CARI & KONSULTASI SAMPAH -->
+        <section id="tab-konsultasi" class="tab-content hidden space-y-8">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <span class="px-3 py-1 rounded-full bg-mint-100 dark:bg-mint-900/60 text-mint-700 dark:text-mint-300 text-xs font-bold uppercase tracking-wider">AI Assistant & Ensiklopedia</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Cari & Konsultasi Sampah</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm">Ketik nama barang atau tanyakan apa saja seputar pemilahan sampah kepada asisten cerdas PilahAI.</p>
+            </div>
+
+            <!-- Search and Ask Box -->
+            <div class="max-w-3xl mx-auto space-y-6">
+                <div class="glass-card p-3 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 flex items-center space-x-2">
+                    <div class="pl-4 text-slate-400 text-lg">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <input type="text" id="waste-search-input" placeholder="Contoh: bungkus mie instan, minyak jelantah, popok bayi, styrofoam..." class="w-full bg-transparent border-none focus:outline-none text-slate-800 dark:text-slate-100 text-sm sm:text-base px-2 py-2">
+                    <button onclick="performWasteSearch()" class="px-6 py-3 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-sm shadow-md transition flex items-center space-x-2 shrink-0">
+                        <span>Tanya AI</span><i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Popular Tags -->
+                <div class="flex flex-wrap items-center justify-center gap-2">
+                    <span class="text-xs font-bold text-slate-400">Pencarian Populer:</span>
+                    <button onclick="quickSearch('Minyak Jelantah')" class="text-xs bg-slate-200 dark:bg-slate-800 hover:bg-eco-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-full font-medium transition">Minyak Jelantah</button>
+                    <button onclick="quickSearch('Struk Belanja Thermal')" class="text-xs bg-slate-200 dark:bg-slate-800 hover:bg-eco-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-full font-medium transition">Struk Belanja</button>
+                    <button onclick="quickSearch('Popok Sekali Pakai')" class="text-xs bg-slate-200 dark:bg-slate-800 hover:bg-eco-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-full font-medium transition">Popok Bayi</button>
+                    <button onclick="quickSearch('Baterai Bekas HP')" class="text-xs bg-slate-200 dark:bg-slate-800 hover:bg-eco-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-full font-medium transition">Baterai HP</button>
+                    <button onclick="quickSearch('Sisa Nasi')" class="text-xs bg-slate-200 dark:bg-slate-800 hover:bg-eco-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-full font-medium transition">Sisa Nasi</button>
+                </div>
+
+                <!-- Search / Consultation Result Display -->
+                <div id="search-result-container" class="hidden space-y-6 pt-4">
+                    <div class="glass-card rounded-3xl p-8 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
+                        <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
+                            <div>
+                                <span id="sr-category-badge" class="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 inline-block">Kategori</span>
+                                <h3 id="sr-title" class="text-2xl font-extrabold text-slate-900 dark:text-white">Nama Sampah</h3>
+                            </div>
+                            <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-2xl">
+                                <i class="fa-solid fa-clock text-eco-500"></i>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Waktu Urai: <strong id="sr-decomp" class="text-slate-800 dark:text-slate-200">50 Tahun</strong></span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <h4 class="font-bold text-slate-900 dark:text-white text-sm flex items-center">
+                                    <i class="fa-solid fa-circle-check text-eco-500 mr-2"></i>Langkah Pemilahan
+                                </h4>
+                                <p id="sr-sorting-steps" class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl">
+                                    Langkah-langkah...
+                                </p>
+                            </div>
+                            <div class="space-y-2">
+                                <h4 class="font-bold text-slate-900 dark:text-white text-sm flex items-center">
+                                    <i class="fa-solid fa-recycle text-mint-500 mr-2"></i>Tips Pengolahan / Daur Ulang
+                                </h4>
+                                <p id="sr-recycling-tips" class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl">
+                                    Tips pengolahan...
+                                </p>
+                            </div>
+                        </div>
+
+                        <div id="sr-environmental-box" class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 p-5 rounded-2xl space-y-2">
+                            <h5 class="font-bold text-emerald-800 dark:text-emerald-300 text-sm flex items-center">
+                                <i class="fa-solid fa-earth-asia mr-2"></i>Dampak Lingkungan & Verifikasi Keamanan
+                            </h5>
+                            <p id="sr-environmental-impact" class="text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm leading-relaxed">
+                                Dampak lingkungan...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: PANDUAN KATEGORI SAMPAH -->
+        <section id="tab-panduan" class="tab-content hidden space-y-8">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <span class="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">Standar Nasional Pemilahan</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Panduan Kategori Sampah</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm">Kenali 3 kategori utama tempat sampah berdasarkan warna standar untuk memudahkan pengelolaan di rumah.</p>
+            </div>
+
+            <!-- Categories Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Organik -->
+                <div class="glass-card rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl font-bold">
+                                <i class="fa-solid fa-seedling"></i>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold">Tempat Sampah Hijau</span>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Sampah Organik</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Mudah membusuk & terurai secara alami</p>
+                        </div>
+                        <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                            Sampah yang berasal dari sisa makhluk hidup (alam) yang dapat mengalami pembusukan oleh bakteri atau mikroorganisme.
+                        </p>
+                        <div class="space-y-2">
+                            <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Contoh Barang:</h5>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Sisa Makanan</span>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Kulit Buah</span>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Sayuran Layu</span>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Daun Kering</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-emerald-50 dark:bg-emerald-950/40 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-900">
+                        <span class="text-xs font-bold text-emerald-800 dark:text-emerald-300 block mb-1">Cara Pengolahan:</span>
+                        <p class="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed">Diolah menjadi pupuk kompos, pakan ternak, atau lubang biopori untuk menyuburkan tanah.</p>
+                    </div>
+                </div>
+
+                <!-- Anorganik -->
+                <div class="glass-card rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl font-bold">
+                                <i class="fa-solid fa-box-archive"></i>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-amber-500 text-white text-xs font-bold">Tempat Sampah Kuning</span>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Sampah Anorganik</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Sulit terurai, dapat didaur ulang</p>
+                        </div>
+                        <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                            Sampah yang bukan berasal dari makhluk hidup dan tidak mudah membusuk. Membutuhkan waktu puluhan hingga ratusan tahun untuk terurai.
+                        </p>
+                        <div class="space-y-2">
+                            <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Contoh Barang:</h5>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Botol Plastik</span>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Kaleng Soda</span>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Kardus / Kertas</span>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Kaca / Beling</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-amber-50 dark:bg-amber-950/40 p-4 rounded-2xl border border-amber-200 dark:border-amber-900">
+                        <span class="text-xs font-bold text-amber-800 dark:text-amber-300 block mb-1">Cara Pengolahan:</span>
+                        <p class="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">Cuci bersih, keringkan, kumpulkan di bank sampah, atau ubah menjadi kerajinan daur ulang kreatif.</p>
+                    </div>
+                </div>
+
+                <!-- B3 / Khusus -->
+                <div class="glass-card rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800 space-y-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center text-2xl font-bold">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-rose-500 text-white text-xs font-bold">Tempat Sampah Merah</span>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Limbah B3 / Khusus</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Berbahaya & beracun bagi lingkungan</p>
+                        </div>
+                        <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                            Bahan berbahaya dan beracun yang mengandung zat kimia atau elemen yang dapat merusak kesehatan manusia serta kelestarian ekosistem.
+                        </p>
+                        <div class="space-y-2">
+                            <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Contoh Barang:</h5>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Baterai Bekas</span>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Lampu Neon</span>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Minyak Jelantah</span>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-medium">Obat Kadaluarsa</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-rose-50 dark:bg-rose-950/40 p-4 rounded-2xl border border-rose-200 dark:border-rose-900">
+                        <span class="text-xs font-bold text-rose-800 dark:text-rose-300 block mb-1">Cara Pengolahan:</span>
+                        <p class="text-xs text-rose-700 dark:text-rose-400 leading-relaxed">Simpan wadah tertutup, jangan dibakar atau dibuang ke selokan. Serahkan ke drop-box limbah B3 resmi.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: TIPS & AKSI NYATA HARIAN -->
+        <section id="tab-tips" class="tab-content hidden space-y-8">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <span class="px-3 py-1 rounded-full bg-mint-100 dark:bg-mint-900/60 text-mint-700 dark:text-mint-300 text-xs font-bold uppercase tracking-wider">Zero Waste Lifestyle</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Aksi Nyata & Tips Harian</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm">Tandai aksi harian Anda untuk melacak kontribusi nyata dalam mengurangi timbulan sampah plastik.</p>
+            </div>
+
+            <!-- Progress Tracker Bar -->
+            <div class="glass-card max-w-3xl mx-auto p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-bold text-slate-800 dark:text-white">Progres Aksi Hari Ini</span>
+                    <span id="progress-text" class="text-sm font-extrabold text-eco-600 dark:text-eco-400">0 dari 4 Selesai (0%)</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-800 h-3 rounded-full overflow-hidden">
+                    <div id="progress-bar-fill" class="bg-gradient-to-r from-eco-500 to-mint-500 h-full w-0 transition-all duration-500 rounded-full"></div>
+                </div>
+            </div>
+
+            <!-- Tips Cards Grid -->
+            <div class="max-w-3xl mx-auto space-y-4">
+                <!-- Tip 1 -->
+                <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between transition hover:border-eco-500">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-eco-100 dark:bg-eco-900/50 text-eco-600 dark:text-eco-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-bag-shopping"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-base">Bawa Tas Belanja Kain (Reusable Bag)</h4>
+                            <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-0.5">Hindari penggunaan kantong plastik sekali pakai saat berbelanja di minimarket atau pasar.</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleTip(0)" id="tip-btn-0" class="px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs sm:text-sm transition shrink-0">
+                        <i class="fa-solid fa-check mr-1.5"></i>Tandai
+                    </button>
+                </div>
+
+                <!-- Tip 2 -->
+                <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between transition hover:border-eco-500">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-mint-100 dark:bg-mint-900/50 text-mint-600 dark:text-mint-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-bottle-water"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-base">Bawa Tumbler & Botol Minum Sendiri</h4>
+                            <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-0.5">Kurangi pembelian air mineral botol plastik sekali pakai saat bepergian ke luar rumah.</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleTip(1)" id="tip-btn-1" class="px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs sm:text-sm transition shrink-0">
+                        <i class="fa-solid fa-check mr-1.5"></i>Tandai
+                    </button>
+                </div>
+
+                <!-- Tip 3 -->
+                <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between transition hover:border-eco-500">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-utensils"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-base">Bawa Alat Makan Pribadi (Cutlery Set)</h4>
+                            <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-0.5">Gunakan sendok dan garpu sendiri saat membeli makanan take-away untuk menghindari sendok plastik.</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleTip(2)" id="tip-btn-2" class="px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs sm:text-sm transition shrink-0">
+                        <i class="fa-solid fa-check mr-1.5"></i>Tandai
+                    </button>
+                </div>
+
+                <!-- Tip 4 -->
+                <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between transition hover:border-eco-500">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-seedling"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-base">Pilah Sisa Makanan untuk Kompos</h4>
+                            <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-0.5">Pisahkan sisa sayur dan buah di wadah khusus untuk dijadikan pupuk tanaman.</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleTip(3)" id="tip-btn-3" class="px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs sm:text-sm transition shrink-0">
+                        <i class="fa-solid fa-check mr-1.5"></i>Tandai
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-12 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-eco-600 to-mint-500 flex items-center justify-center text-white font-bold">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-bold bg-gradient-to-r from-eco-600 to-mint-600 bg-clip-text text-transparent">PilahAI</span>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Asisten Pemilahan Sampah Cerdas untuk Indonesia Bersih.</p>
+                </div>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 text-center">
+                &copy; 2026 PilahAI. Dibuat dengan kepedulian tinggi terhadap kelestarian lingkungan hidup.
+            </p>
+        </div>
+    </footer>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-card max-w-lg w-full rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-eco-100 dark:bg-eco-900/50 text-eco-600 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Riwayat Pemilahan Sampah</h3>
+                </div>
+                <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div id="history-list" class="space-y-3 overflow-y-auto custom-scrollbar flex-grow pr-1">
+                <!-- History items injected here -->
+                <p id="empty-history-text" class="text-center text-slate-400 text-sm py-8">Belum ada riwayat tersimpan.</p>
+            </div>
+
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between">
+                <button onclick="clearHistory()" class="px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-bold hover:bg-rose-100 transition">Hapus Riwayat</button>
+                <button onclick="closeHistoryModal()" class="px-5 py-2 rounded-xl bg-eco-600 text-white text-xs font-bold hover:bg-eco-500 transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast-notification" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 glass-card bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl border border-slate-800 flex items-center space-x-3">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-eco-400 text-lg"></i>
+        <span id="toast-message" class="text-sm font-semibold">Berhasil menyimpan riwayat!</span>
+    </div>
+
+    <script>
+        // Database Sampah Pintar
+        const wasteDatabase = {
+            "baterai": {
+                name: "Baterai Bekas (Lithium / Alkali)",
+                category: "Limbah B3 / Khusus",
+                categoryClass: "bg-rose-500 text-white",
+                binColor: "#f43f5e",
+                binName: "Tempat Sampah Merah (B3)",
+                decomposition: "100 - 1.000+ Tahun",
+                icon: "fa-battery-half",
+                iconBg: "bg-rose-100 dark:bg-rose-900/40 text-rose-600",
+                confidence: "99.2%",
+                sortingSteps: "Jangan dicampur dengan sampah rumah tangga. Simpan dalam wadah kering tertutup rapat agar tidak bocor dan mencemari lingkungan.",
+                recyclingTips: "Serahkan ke drop-box khusus limbah elektronik (e-waste) di pusat perbelanjaan, kantor kelurahan, atau bank sampah yang bekerja sama dengan pengolah B3.",
+                environmentalImpact: "Mengandung logam berat seperti merkuri, kadmium, dan timbal yang sangat beracun bagi tanah serta air tanah jika terbuang di TPA biasa."
+            },
+            "botol": {
+                name: "Botol Plastik Minuman (PET)",
+                category: "Sampah Anorganik",
+                categoryClass: "bg-amber-500 text-white",
+                binColor: "#f59e0b",
+                binName: "Tempat Sampah Kuning (Anorganik)",
+                decomposition: "450 Tahun",
+                icon: "fa-bottle-water",
+                iconBg: "bg-amber-100 dark:bg-amber-900/40 text-amber-600",
+                confidence: "98.7%",
+                sortingSteps: "Lepaskan label merek dan tutup botol. Bilas sisa cairan di dalam botol, lalu pipihkan untuk menghemat ruang penyimpanan.",
+                recyclingTips: "Kumpulkan dalam karung khusus plastik dan serahkan ke Bank Sampah terdekat atau pemulung agar dapat dilebur kembali menjadi bijih plastik.",
+                environmentalImpact: "Plastik PET yang terbuang sembarangan dapat pecah menjadi mikroplastik yang mencemari ekosistem laut dan rantai makanan."
+            },
+            "sisa_makanan": {
+                name: "Sisa Makanan & Sayuran",
+                category: "Sampah Organik",
+                categoryClass: "bg-emerald-500 text-white",
+                binColor: "#10b981",
+                binName: "Tempat Sampah Hijau (Organik)",
+                decomposition: "2 - 4 Minggu",
+                icon: "fa-apple-whole",
+                iconBg: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600",
+                confidence: "99.5%",
+                sortingSteps: "Pisahkan dari bungkus plastik atau karet pembungkusnya. Kumpulkan dalam wadah kedap udara tertutup.",
+                recyclingTips: "Olah menjadi kompos padat/cair menggunakan takakura, atau masukkan ke dalam lubang biopori di pekarangan rumah.",
+                environmentalImpact: "Jika tercampur di TPA tanpa oksigen, sisa makanan menghasilkan gas metana yang memperparah pemanasan global."
+            },
+            "lampu": {
+                name: "Lampu Neon / TL / LED",
+                category: "Limbah B3 / Khusus",
+                categoryClass: "bg-rose-500 text-white",
+                binColor: "#f43f5e",
+                binName: "Tempat Sampah Merah (B3)",
+                decomposition: "Bertahun-tahun (Mengandung Gas Beracun)",
+                icon: "fa-lightbulb",
+                iconBg: "bg-rose-100 dark:bg-rose-900/40 text-rose-600",
+                confidence: "97.8%",
+                sortingSteps: "Bungkus lampu dengan kardus atau Koran tebal agar tidak pecah saat pengangkutan. Jangan dibuang di kantong plastik biasa.",
+                recyclingTips: "Bawa ke fasilitas pengumpulan limbah B3 kota atau fasilitas daur ulang lampu yang memiliki penanganan uap merkuri aman.",
+                environmentalImpact: "Lampu neon mengandung uap merkuri beracun yang berbahaya bagi sistem saraf jika tabung kaca pecah di lingkungan terbuka."
+            },
+            "kardus": {
+                name: "Kardus & Kertas Bekas",
+                category: "Sampah Anorganik",
+                categoryClass: "bg-blue-500 text-white",
+                binColor: "#3b82f6",
+                binName: "Tempat Sampah Kuning (Anorganik)",
+                decomposition: "2 - 3 Bulan",
+                icon: "fa-box-archive",
+                iconBg: "bg-blue-100 dark:bg-blue-900/40 text-blue-600",
+                confidence: "98.9%",
+                sortingSteps: "Lipat kardus hingga pipih untuk menghemat ruang. Pastikan tidak terkena minyak atau sisa makanan basah.",
+                recyclingTips: "Jual ke lapak pengepul kertas atau serahkan ke bank sampah unit setempat untuk didaur ulang menjadi bubur kertas (pulp).",
+                environmentalImpact: "Mendaur ulang 1 ton kardus dapat menyelamatkan sekitar 17 pohon besar dan menghemat penggunaan air bersih."
+            },
+            "minyak": {
+                name: "Minyak Jelantah (Bekas Goreng)",
+                category: "Limbah B3 / Khusus",
+                categoryClass: "bg-purple-600 text-white",
+                binColor: "#9333ea",
+                binName: "Jerigen Khusus / Penampungan Jelantah",
+                decomposition: "Merusak ekosistem air",
+                icon: "fa-oil-can",
+                iconBg: "bg-purple-100 dark:bg-purple-900/40 text-purple-600",
+                confidence: "96.4%",
+                sortingSteps: "Biarkan minyak dingin, saring sisa ampas makanan dengan saringan halus, lalu masukkan ke dalam botol atau jerigen plastik bersih.",
+                recyclingTips: "Jangan pernah dibuang ke wastafel atau saluran air! Setorkan ke pengepul minyak jelantah untuk diolah menjadi biodiesel atau sabun ramah lingkungan.",
+                environmentalImpact: "1 liter minyak jelantah yang dibuang ke saluran air dapat mencemari ribuan liter air bersih dan menyumbat pipa."
+            }
+        };
+
+        // State Management
+        let currentTab = 'beranda';
+        let webcamStream = null;
+        let lastDetectedItem = null;
+        let detectionHistory = JSON.parse(localStorage.getItem('pilahai_history') || '[]');
+        let tipStates = JSON.parse(localStorage.getItem('pilahai_tips') || '[false, false, false, false]');
+
+        // Initialize on Load
+        window.onload = function() {
+            initTheme();
+            updateTipUI();
+            updateHistoryBadge();
+        };
+
+        // Theme Toggle
+        function initTheme() {
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').className = 'fa-solid fa-sun';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-icon').className = 'fa-solid fa-moon';
+            }
+        }
+
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                document.getElementById('theme-icon').className = 'fa-solid fa-moon';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                document.getElementById('theme-icon').className = 'fa-solid fa-sun';
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Update nav active styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.target === tabId) {
+                    btn.classList.add('bg-eco-50', 'dark:bg-slate-800', 'text-eco-600', 'dark:text-eco-400');
+                } else {
+                    btn.classList.remove('bg-eco-50', 'dark:bg-slate-800', 'text-eco-600', 'dark:text-eco-400');
+                }
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (tabId !== 'detektor' && webcamStream) {
+                stopWebcam();
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Detector Mode Switching
+        function switchDetectorMode(mode) {
+            stopWebcam();
+            document.getElementById('detector-webcam-view').classList.add('hidden');
+            document.getElementById('detector-upload-view').classList.add('hidden');
+            document.getElementById('detector-sample-view').classList.add('hidden');
+
+            document.getElementById('mode-webcam-btn').className = "flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all text-slate-600 dark:text-slate-400";
+            document.getElementById('mode-upload-btn').className = "flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all text-slate-600 dark:text-slate-400";
+            document.getElementById('mode-sample-btn').className = "flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all text-slate-600 dark:text-slate-400";
+
+            if (mode === 'webcam') {
+                document.getElementById('detector-webcam-view').classList.remove('hidden');
+                document.getElementById('mode-webcam-btn').className = "flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all bg-white dark:bg-slate-900 text-eco-600 dark:text-eco-400 shadow-sm";
+            } else if (mode === 'upload') {
+                document.getElementById('detector-upload-view').classList.remove('hidden');
+                document.getElementById('mode-upload-btn').className = "flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all bg-white dark:bg-slate-900 text-eco-600 dark:text-eco-400 shadow-sm";
+            } else if (mode === 'sample') {
+                document.getElementById('detector-sample-view').classList.remove('hidden');
+                document.getElementById('mode-sample-btn').className = "flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all bg-white dark:bg-slate-900 text-eco-600 dark:text-eco-400 shadow-sm";
+            }
+        }
+
+        // Webcam Functions
+        async function startWebcam() {
+            const video = document.getElementById('webcam-video');
+            const placeholder = document.getElementById('webcam-placeholder');
+            const startBtn = document.getElementById('start-cam-btn');
+            const stopBtn = document.getElementById('stop-cam-btn');
+            const captureBtn = document.getElementById('capture-btn');
+
+            try {
+                webcamStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+                video.srcObject = webcamStream;
+                video.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                startBtn.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+                captureBtn.classList.remove('hidden');
+                showToast('Kamera web berhasil diaktifkan!', 'fa-circle-check');
+            } catch (err) {
+                console.error("Gagal mengakses kamera:", err);
+                showToast('Gagal mengakses kamera. Gunakan Mode Sampel atau Unggah Foto.', 'fa-triangle-exclamation');
+            }
+        }
+
+        function stopWebcam() {
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(track => track.stop());
+                webcamStream = null;
+            }
+            const video = document.getElementById('webcam-video');
+            const placeholder = document.getElementById('webcam-placeholder');
+            const startBtn = document.getElementById('start-cam-btn');
+            const stopBtn = document.getElementById('stop-cam-btn');
+            const captureBtn = document.getElementById('capture-btn');
+
+            video.classList.add('hidden');
+            placeholder.classList.remove('hidden');
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+            captureBtn.classList.add('hidden');
+        }
+
+        function captureAndAnalyze() {
+            const laser = document.getElementById('scanner-laser');
+            laser.classList.remove('hidden');
+            
+            setTimeout(() => {
+                laser.classList.add('hidden');
+                // Randomly pick a sample result for simulation
+                const keys = Object.keys(wasteDatabase);
+                const randomKey = keys[Math.floor(Math.random() * keys.length)];
+                displayDetectionResult(wasteDatabase[randomKey]);
+                showToast('AI berhasil mendeteksi objek!', 'fa-wand-magic-sparkles');
+            }, 2000);
+        }
+
+        // File Upload Functions
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('uploaded-image-preview').src = e.target.result;
+                    document.getElementById('upload-preview-container').classList.remove('hidden');
+                    document.getElementById('drop-zone').classList.add('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function analyzeUploadedPhoto() {
+            const laser = document.getElementById('upload-scanner');
+            laser.classList.remove('hidden');
+
+            setTimeout(() => {
+                laser.classList.add('hidden');
+                const keys = Object.keys(wasteDatabase);
+                const randomKey = keys[Math.floor(Math.random() * keys.length)];
+                displayDetectionResult(wasteDatabase[randomKey]);
+                showToast('Analisis foto selesai!', 'fa-wand-magic-sparkles');
+            }, 2000);
+        }
+
+        // Sample Analysis
+        function analyzeSample(sampleKey) {
+            const data = wasteDatabase[sampleKey];
+            if (data) {
+                displayDetectionResult(data);
+                showToast(`Sampel ${data.name} berhasil dimuat!`, 'fa-bolt');
+            }
+        }
+
+        function displayDetectionResult(data) {
+            lastDetectedItem = data;
+            document.getElementById('detection-result-placeholder').classList.add('hidden');
+            const card = document.getElementById('detection-result-card');
+            card.classList.remove('hidden');
+
+            document.getElementById('res-icon-wrapper').className = `w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold ${data.iconBg}`;
+            document.getElementById('res-icon').className = `fa-solid ${data.icon}`;
+            document.getElementById('res-title-name').innerText = data.name;
+            
+            const badge = document.getElementById('res-badge-category');
+            badge.innerText = data.category;
+            badge.className = `text-xs font-bold px-2.5 py-1 rounded-full ${data.categoryClass}`;
+
+            document.getElementById('res-confidence').innerText = data.confidence;
+            document.getElementById('res-decomposition').innerText = data.decomposition;
+            document.getElementById('res-bin-color-dot').style.backgroundColor = data.binColor;
+            document.getElementById('res-bin-name').innerText = data.binName;
+            document.getElementById('res-instructions').innerText = data.sortingSteps;
+
+            const b3Warning = document.getElementById('res-b3-warning');
+            if (data.category.includes('B3') || data.category.includes('Khusus')) {
+                b3Warning.classList.remove('hidden');
+                document.getElementById('res-b3-text').innerText = data.environmentalImpact;
+            } else {
+                b3Warning.classList.add('hidden');
+            }
+        }
+
+        // Save Detection to History
+        function saveDetectionToHistory() {
+            if (!lastDetectedItem) return;
+            const newItem = {
+                ...lastDetectedItem,
+                timestamp: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            };
+            detectionHistory.unshift(newItem);
+            if (detectionHistory.length > 20) detectionHistory.pop();
+            localStorage.setItem('pilahai_history', JSON.stringify(detectionHistory));
+            updateHistoryBadge();
+            showToast('Hasil berhasil disimpan ke riwayat!', 'fa-bookmark');
+        }
+
+        function updateHistoryBadge() {
+            const badge = document.getElementById('history-badge');
+            if (detectionHistory.length > 0) {
+                badge.innerText = detectionHistory.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function openHistoryModal() {
+            const listEl = document.getElementById('history-list');
+            const emptyText = document.getElementById('empty-history-text');
+            listEl.innerHTML = '';
+
+            if (detectionHistory.length === 0) {
+                emptyText.classList.remove('hidden');
+                listEl.appendChild(emptyText);
+            } else {
+                emptyText.classList.add('hidden');
+                detectionHistory.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = "p-4 rounded-2xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between";
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl ${item.iconBg} flex items-center justify-center text-base">
+                                <i class="fa-solid ${item.icon}"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-slate-900 dark:text-white text-sm">${item.name}</h5>
+                                <div class="flex items-center space-x-2 mt-0.5">
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${item.categoryClass}">${item.category}</span>
+                                    <span class="text-[10px] text-slate-400">${item.timestamp}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="removeHistoryItem(${index})" class="text-slate-400 hover:text-rose-500 p-2 transition">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                    `;
+                    listEl.appendChild(div);
+                });
+            }
+            document.getElementById('history-modal').classList.remove('hidden');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('history-modal').classList.add('hidden');
+        }
+
+        function clearHistory() {
+            detectionHistory = [];
+            localStorage.removeItem('pilahai_history');
+            updateHistoryBadge();
+            openHistoryModal();
+            showToast('Riwayat berhasil dibersihkan.', 'fa-circle-check');
+        }
+
+        function removeHistoryItem(index) {
+            detectionHistory.splice(index, 1);
+            localStorage.setItem('pilahai_history', JSON.stringify(detectionHistory));
+            updateHistoryBadge();
+            openHistoryModal();
+        }
+
+        // Smart Search and Gemini API Consultation
+        function quickSearch(query) {
+            document.getElementById('waste-search-input').value = query;
+            performWasteSearch();
+        }
+
+        async function performWasteSearch() {
+            const query = document.getElementById('waste-search-input').value.trim();
+            if (!query) {
+                showToast('Silakan masukkan nama atau deskripsi sampah terlebih dahulu.', 'fa-triangle-exclamation');
+                return;
+            }
+
+            showToast('Mencari informasi & konsultasi AI...', 'fa-brain');
+
+            // Check local database first
+            let foundKey = Object.keys(wasteDatabase).find(k => query.toLowerCase().includes(k) || wasteDatabase[k].name.toLowerCase().includes(query.toLowerCase()));
+            
+            if (foundKey) {
+                const data = wasteDatabase[foundKey];
+                renderSearchResult(data);
+            } else {
+                // Call Gemini API for dynamic search & consultation
+                try {
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+                    
+                    const systemPrompt = "Bertindaklah sebagai ahli manajemen sampah dan lingkungan hidup profesional di Indonesia. Berikan analisis terperinci untuk barang sampah yang diminta pengguna dalam format JSON yang valid dengan properti: name (string), category (string), decomposition (string), sortingSteps (string), recyclingTips (string), environmentalImpact (string).";
+                    const userQuery = `Berikan informasi pemilahan untuk sampah: ${query}`;
+
+                    const payload = {
+                        contents: [{ parts: [{ text: userQuery }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    name: { type: "STRING" },
+                                    category: { type: "STRING" },
+                                    decomposition: { type: "STRING" },
+                                    sortingSteps: { type: "STRING" },
+                                    recyclingTips: { type: "STRING" },
+                                    environmentalImpact: { type: "STRING" }
+                                },
+                                propertyOrdering: ["name", "category", "decomposition", "sortingSteps", "recyclingTips", "environmentalImpact"]
+                            }
+                        }
+                    };
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        const parsed = JSON.parse(candidate.content.parts[0].text);
+                        let catClass = "bg-amber-500 text-white";
+                        if (parsed.category.toLowerCase().includes('organik')) catClass = "bg-emerald-500 text-white";
+                        if (parsed.category.toLowerCase().includes('b3') || parsed.category.toLowerCase().includes('khusus')) catClass = "bg-rose-500 text-white";
+
+                        const dynamicData = {
+                            name: parsed.name,
+                            category: parsed.category,
+                            categoryClass: catClass,
+                            decomposition: parsed.decomposition,
+                            sortingSteps: parsed.sortingSteps,
+                            recyclingTips: parsed.recyclingTips,
+                            environmentalImpact: parsed.environmentalImpact
+                        };
+                        renderSearchResult(dynamicData);
+                    } else {
+                        throw new Error('Gagal memproses respons AI');
+                    }
+                } catch (err) {
+                    console.error("Gemini API Error:", err);
+                    // Fallback generic result
+                    const fallbackData = {
+                        name: query,
+                        category: "Sampah Anorganik / Umum",
+                        categoryClass: "bg-amber-500 text-white",
+                        decomposition: "10 - 100+ Tahun",
+                        sortingSteps: "Bersihkan dari sisa kotoran menempel, keringkan, dan kelompokkan sesuai jenis materialnya.",
+                        recyclingTips: "Serahkan ke bank sampah terdekat atau tempat pengumpulan daur ulang kota.",
+                        environmentalImpact: "Pengelolaan yang benar mencegah pencemaran lingkungan serta mengurangi volume sampah di TPA."
+                    };
+                    renderSearchResult(fallbackData);
+                }
+            }
+        }
+
+        function renderSearchResult(data) {
+            document.getElementById('search-result-container').classList.remove('hidden');
+            document.getElementById('sr-title').innerText = data.name;
+            
+            const badge = document.getElementById('sr-category-badge');
+            badge.innerText = data.category;
+            badge.className = `text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 inline-block ${data.categoryClass}`;
+
+            document.getElementById('sr-decomp').innerText = data.decomposition;
+            document.getElementById('sr-sorting-steps').innerText = data.sortingSteps;
+            document.getElementById('sr-recycling-tips').innerText = data.recyclingTips;
+            document.getElementById('sr-environmental-impact').innerText = data.environmentalImpact;
+            
+            document.getElementById('search-result-container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Tips Daily Tracker
+        function toggleTip(index) {
+            tipStates[index] = !tipStates[index];
+            localStorage.setItem('pilahai_tips', JSON.stringify(tipStates));
+            updateTipUI();
+            showToast('Progres aksi harian diperbarui!', 'fa-circle-check');
+        }
+
+        function updateTipUI() {
+            let completedCount = 0;
+            tipStates.forEach((val, idx) => {
+                const btn = document.getElementById(`tip-btn-${idx}`);
+                if (val) {
+                    completedCount++;
+                    btn.className = "px-5 py-2.5 rounded-xl bg-eco-600 text-white font-bold text-xs sm:text-sm transition shrink-0 shadow-md shadow-eco-600/30";
+                    btn.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Selesai';
+                } else {
+                    btn.className = "px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs sm:text-sm transition shrink-0";
+                    btn.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>Tandai';
+                }
+            });
+
+            const percent = Math.round((completedCount / 4) * 100);
+            document.getElementById('progress-bar-fill').style.width = `${percent}%`;
+            document.getElementById('progress-text').innerText = `${completedCount} dari 4 Selesai (${percent}%)`;
+        }
+
+        // Toast Notification Helper
+        function showToast(message, iconClass) {
+            const toast = document.getElementById('toast-notification');
+            const icon = document.getElementById('toast-icon');
+            const msg = document.getElementById('toast-message');
+
+            msg.innerText = message;
+            icon.className = `fa-solid ${iconClass} text-eco-400 text-lg`;
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
